@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts.apps.AccountsConfig',
     'agencies.apps.AgenciesConfig',
+    'property.apps.PropertyConfig',
     'rest_framework.authtoken',
     'corsheaders',
     "drf_spectacular",
