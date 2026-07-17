@@ -37,4 +37,19 @@ class CreatePropertySerializer(serializers.ModelSerializer):
 
         return prop
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyImage
+        fields = ('image' , )
 
+
+class ListPropertySerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Property
+        fields = ('title' , "description" , 'listing_type' , 'property_type' , 'status' , 'price' , 'images')
+
+    def get_images(self , obj):
+        images = obj.images.all()
+        return ImageSerializer(images , many=True).data
