@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Property , PropertyImage
 from django.db import transaction
+from agencies.serializers import AgencyListSerializer
 
 
 
@@ -52,4 +53,30 @@ class ListPropertySerializer(serializers.ModelSerializer):
 
     def get_images(self , obj):
         images = obj.images.all()
-        return ImageSerializer(images , many=True).data
+        return ImageSerializer(images , many=True , context=self.context).data
+
+
+class PropertyDetailSerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+    agency = AgencyListSerializer(read_only=True)
+
+    class Meta:
+        model = Property
+        fields = ('id' , 'slug' , 'title' , 'description' , 'listing_type' , 'property_type' ,
+                  'status' , 'price' , 'area' , 'bedrooms' , 'bathrooms' , 'has_parking' ,
+                  'floor' , 'total_floors' , 'year_built' , 'province' , 'city' , 'address' ,
+                  'latitude' , 'longitude' , 'is_featured' , 'view_count' , 'created' , 'updated' ,
+                  'agency' , 'images')
+
+    def get_images(self , obj):
+        images = obj.images.all()
+        return ImageSerializer(images , many=True , context=self.context).data
+
+
+class PropertyUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Property
+        fields = ('title' , 'description' , 'listing_type' , 'property_type' , 'status' ,
+                  'price' , 'area' , 'bedrooms' , 'bathrooms' , 'has_parking' , 'floor' ,
+                  'total_floors' , 'year_built' , 'province' , 'city' , 'address' ,
+                  'latitude' , 'longitude')

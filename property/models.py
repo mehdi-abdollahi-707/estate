@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from agencies.models import Agency
 from django.utils.text import slugify
@@ -31,7 +32,7 @@ class Property(models.Model):
 
     agency = models.ForeignKey(Agency,on_delete=models.CASCADE ,related_name="properties")
     title = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True,blank=True,null=True)
+    slug = models.SlugField(unique=True,blank=True,max_length=280)
     description = models.TextField()
     listing_type = models.CharField(max_length=10,choices=ListingType.choices , db_index=True)
     property_type = models.CharField(max_length=20,choices=PropertyType.choices , db_index=True)
@@ -55,13 +56,16 @@ class Property(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            super().save(*args, **kwargs)
+        if not self.slug:
+            base_slug = slugify(f"{self.title}-{self.city}", allow_unicode=True) or uuid.uuid4().hex[:10]
+            slug = base_slug
+            counter = 1
+            while Property.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
 
-            self.slug = f"{self.pk}-{slugify(self.title)}"
-            super().save(update_fields=["slug"])
-        else:
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 
