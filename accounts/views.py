@@ -204,8 +204,7 @@ class UserResetPasswordStepOneView(APIView):
         phone_number = serializer.validated_data['phone_number']
 
         if not User.objects.filter(phone_number=phone_number).exists():
-            if request.user.phone_number != phone_number:
-                return Response({"message" : "phone number is wrong"} , status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message" : "phone number is wrong"} , status=status.HTTP_400_BAD_REQUEST)
 
         if cache.get(otp_limit_key(phone_number)):
             return Response({"message" : "Try agin later"} , status=status.HTTP_429_TOO_MANY_REQUESTS)
