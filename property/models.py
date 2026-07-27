@@ -31,7 +31,7 @@ class Property(models.Model):
 
     agency = models.ForeignKey(Agency,on_delete=models.CASCADE ,related_name="properties")
     title = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True,blank=True)
+    slug = models.SlugField(unique=True,blank=True,null=True)
     description = models.TextField()
     listing_type = models.CharField(max_length=10,choices=ListingType.choices , db_index=True)
     property_type = models.CharField(max_length=20,choices=PropertyType.choices , db_index=True)

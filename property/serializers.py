@@ -11,11 +11,12 @@ class CreatePropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Property
-        fields = ('title' , 'description' , 'listing_type' , 'property_type' ,
+        fields = ('id' , 'slug' , 'title' , 'description' , 'listing_type' , 'property_type' ,
                   'status' , 'price' , 'area' , 'bedrooms' , 'bathrooms' ,
                   'has_parking' , 'floor' , 'total_floors' , 'year_built',
                   'province' , 'city' , 'address' , 'latitude' , 'longitude',
-                  'is_featured' , 'image1' , 'image2' , 'image3' ,)
+                  'image1' , 'image2' , 'image3' ,)
+        read_only_fields = ('id' , 'slug')
 
     @transaction.atomic
     def create(self, validated_data):
@@ -28,8 +29,7 @@ class CreatePropertySerializer(serializers.ModelSerializer):
 
         prop = Property.objects.create(**validated_data)
 
-
-        PropertyImage.objects.create(property=prop, image=image1)
+        PropertyImage.objects.create(property=prop, image=image1, is_first=True)
 
         for image in (image2, image3):
             if image:
@@ -48,7 +48,7 @@ class ListPropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Property
-        fields = ('title' , "description" , 'listing_type' , 'property_type' , 'status' , 'price' , 'images')
+        fields = ('id' , 'slug' , 'title' , "description" , 'listing_type' , 'property_type' , 'status' , 'price' , 'images')
 
     def get_images(self , obj):
         images = obj.images.all()
