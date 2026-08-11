@@ -1,10 +1,11 @@
+from django.db import IntegrityError
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import *
-from .serializers import AgencySerializer , AgencyDetailSerializer , AgencyListSerializer
+from .serializers import AgencySerializer , AgencyDetailSerializer , AgencyListSerializer , AgencyPublicDetailSerializer
 from .permissions import IsAgent
 from django.shortcuts import get_object_or_404
 
@@ -21,7 +22,11 @@ class CreateAgencyView(APIView):
         serializer = self.serializer_class(data=request.data , context={'request':request})
         serializer.is_valid(raise_exception=True)
 
-        serializer.save(agent = request.user)
+        try:
+            serializer.save(agent = request.user)
+        except IntegrityError:
+            return Response({"message" : "you already have an agency"} , status = status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.data , status=status.HTTP_201_CREATED)
 
 
@@ -43,12 +48,20 @@ class UpdateAgencyView(APIView):
                                            partial=True,
                                            context={'request':request} ,)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+        changed = any(
+            getattr(agency, field) != value
+            for field, value in serializer.validated_data.items()
+        )
+
+        save_kwargs = {'is_verified': False} if changed and agency.is_verified else {}
+        serializer.save(**save_kwargs)
         return Response(serializer.data , status=status.HTTP_200_OK)
 
 
 class ListAgencyView(APIView):
     serializer_class = AgencyListSerializer
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self , request):
@@ -61,7 +74,8 @@ class DetailPublicAgencyView(APIView):
     """
     Public agency detail view
     """
-    serializer_class = AgencyDetailSerializer
+    serializer_class = AgencyPublicDetailSerializer
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self , request , *args , **kwargs ):

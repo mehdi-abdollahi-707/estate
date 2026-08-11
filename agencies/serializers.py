@@ -20,9 +20,18 @@ class AgencyListSerializer(serializers.ModelSerializer):
 
 
 class AgencyDetailSerializer(serializers.ModelSerializer):
+    """Full agency detail, for the owning agent."""
     class Meta:
         model = Agency
         fields = "__all__"
+
+
+class AgencyPublicDetailSerializer(serializers.ModelSerializer):
+    """Public agency detail — excludes internal fields such as the owning agent's user id."""
+    class Meta:
+        model = Agency
+        fields = ('pk' , 'name' , 'license_number' , 'business_phone' , 'description' ,
+                  'province' , 'city' , 'exact_address' , 'is_verified' , 'created' , 'updated')
 
 
 
