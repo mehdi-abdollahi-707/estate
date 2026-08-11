@@ -93,6 +93,10 @@ class UserResetPasswordSerializer(serializers.Serializer):
     password = serializers.CharField()
     confirm_password = serializers.CharField()
 
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
     def validate(self , data):
         pass1 = data['password']
         pass2 = data['confirm_password']
