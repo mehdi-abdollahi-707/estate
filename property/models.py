@@ -62,7 +62,14 @@ class Property(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if self.slug:
+        needs_slug = not self.slug
+
+        if self.pk and not needs_slug:
+            old = Property.objects.filter(pk=self.pk).values("title", "city").first()
+            if old and (old["title"] != self.title or old["city"] != self.city):
+                needs_slug = True
+
+        if not needs_slug:
             super().save(*args, **kwargs)
             return
 

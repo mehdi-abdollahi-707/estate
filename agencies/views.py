@@ -126,6 +126,9 @@ class CreateInquiryView(APIView):
             Property.objects.exclude(status=Property.Status.INACTIVE) , slug=slug
         )
 
+        if property_obj.agency.agent_id == request.user.id:
+            return Response({"message":"You cannot inquire about your own property"}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(customer=request.user , property=property_obj)
