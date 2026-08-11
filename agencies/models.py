@@ -32,4 +32,22 @@ class Agency(models.Model):
         verbose_name_plural = "agencies"
 
 
+class Inquiry(models.Model):
+    class Status(models.TextChoices):
+        NEW = "NEW", "New"
+        CONTACTED = "CONTACTED", "Contacted"
+        CLOSED = "CLOSED", "Closed"
 
+    property = models.ForeignKey('property.Property' , on_delete=models.CASCADE , related_name='inquiries')
+    customer = models.ForeignKey(User , on_delete=models.CASCADE , related_name='inquiries')
+    message = models.TextField()
+    status = models.CharField(max_length=10 , choices=Status.choices , default=Status.NEW)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Inquiry #{self.pk} - {self.property} - {self.customer}"
+
+    class Meta:
+        verbose_name = "inquiry"
+        verbose_name_plural = "inquiries"
+        ordering = ["-created"]

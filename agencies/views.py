@@ -5,9 +5,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import *
-from .serializers import AgencySerializer , AgencyDetailSerializer , AgencyListSerializer , AgencyPublicDetailSerializer
+from .serializers import (AgencySerializer , AgencyDetailSerializer , AgencyListSerializer ,
+                          AgencyPublicDetailSerializer , InquiryCreateSerializer ,
+                          InquiryListSerializer , InquiryUpdateSerializer)
 from .permissions import IsAgent
 from django.shortcuts import get_object_or_404
+from property.models import Property
 
 class CreateAgencyView(APIView):
     """
@@ -109,3 +112,71 @@ class DeleteAgencyView(APIView):
             return Response({"message":"Agency not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"message":"Agency deleted"}, status=status.HTTP_200_OK)
+
+
+class CreateInquiryView(APIView):
+    """
+    customer sends an inquiry about a property
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = InquiryCreateSerializer
+
+    def post(self , request , slug):
+        property_obj = get_object_or_404(
+            Property.objects.exclude(status=Property.Status.INACTIVE) , slug=slug
+        )
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(customer=request.user , property=property_obj)
+
+        return Response(serializer.data , status=status.HTTP_201_CREATED)
+
+
+class ListAgencyInquiriesView(APIView):
+    """
+    list inquiries for the authenticated agent's agency
+    """
+    permission_classes = [IsAgent]
+    serializer_class = InquiryListSerializer
+
+    def get(self , request):
+        try:
+            agency = request.user.agency
+        except Agency.DoesNotExist:
+            return Response({"message":"Agency not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        inquiries = Inquiry.objects.filter(property__agency=agency)
+
+        status_param = request.query_params.get('status')
+        if status_param:
+            inquiries = inquiries.filter(status=status_param)
+
+        property_slug = request.query_params.get('property')
+        if property_slug:
+            inquiries = inquiries.filter(property__slug=property_slug)
+
+        serializer = self.serializer_class(inquiries , many=True)
+        return Response(serializer.data , status=status.HTTP_200_OK)
+
+
+class UpdateInquiryStatusView(APIView):
+    """
+    agent updates the status of an inquiry belonging to their agency
+    """
+    permission_classes = [IsAgent]
+    serializer_class = InquiryUpdateSerializer
+
+    def patch(self , request , pk):
+        try:
+            agency = request.user.agency
+        except Agency.DoesNotExist:
+            return Response({"message":"Agency not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        inquiry = get_object_or_404(Inquiry , pk=pk , property__agency=agency)
+
+        serializer = self.serializer_class(instance=inquiry , data=request.data , partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data , status=status.HTTP_200_OK)

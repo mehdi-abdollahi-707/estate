@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Agency
+from .models import Agency , Inquiry
 
 
 
@@ -13,6 +13,14 @@ class AgencyAdmin(admin.ModelAdmin):
     list_filter = ('is_verified' , 'province' , 'city')
 
     """ordering by """
+    ordering = ('-created',)
+
+
+@admin.register(Inquiry)
+class InquiryAdmin(admin.ModelAdmin):
+    list_display = ("pk" , 'property' , 'customer' , 'status' , 'created')
+    search_fields = ('property__title' , 'customer__phone_number' , 'message')
+    list_filter = ('status',)
     ordering = ('-created',)
 
 
