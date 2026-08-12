@@ -14,6 +14,7 @@ urlpatterns = [
     path("api/docs/",SpectacularSwaggerView.as_view(url_name="schema"),name="swagger-ui",),
     path("agencies/" , include('agencies.urls' , namespace='agencies')),
     path('property/' , include('property.urls' , namespace='property')),
+    path('userproperty/' , include('userproperty.urls' , namespace='userproperty')),
 ]
 if settings.DEBUG:
     urlpatterns += static(
