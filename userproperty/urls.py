@@ -4,5 +4,7 @@ from . import views
 app_name = 'userproperty'
 
 urlpatterns = [
-    path('add/<slug:slug>/' , views.UserSaveProperty.as_view() , name = 'add_property'),
+    path('save/<slug:slug>/' , views.UserSaveProperty.as_view() , name = 'save_property'),
+    path('unsave/<int:pk>/' , views.UserUnsaveProperty.as_view() , name = 'unsave_property'),
+    path('list/' , views.ListSavedPropertiesView.as_view() , name = 'list_saved_properties'),
 ]
